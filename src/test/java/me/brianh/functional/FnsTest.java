@@ -1,7 +1,10 @@
 package me.brianh.functional;
 
+import static me.brianh.functional.Fns.filter;
 import static me.brianh.functional.Fns.into;
+import static me.brianh.functional.Fns.listComprehension;
 import static me.brianh.functional.Fns.map;
+import static me.brianh.functional.Fns.take;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -22,7 +25,16 @@ public class FnsTest {
 		}
 	};
 	
-	private List<Integer> nums = Arrays.asList( 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 );
+	@Test
+	public void testFilter() {
+		List<Integer> evens = new ArrayList<Integer>();
+		into( evens, filter( MathFns.isEven, take( 100, new NaturalInts() ) ) );
+		assertEquals( 50, evens.size() );
+		assertEquals( new Integer( 0 ), evens.get( 0 ) );
+		assertEquals( new Integer( 2 ), evens.get( 1 ) );
+		assertEquals( new Integer( 20 ), evens.get( 10 ) );
+		assertEquals( new Integer( 98 ), evens.get( 49 ) );
+	}
 
 	@Test
 	public void testInto() throws Exception {
@@ -30,8 +42,9 @@ public class FnsTest {
 		List<Integer> negs = new ArrayList<Integer>();
 		negs.addAll( Arrays.asList( -4, -3, -2, -1 ) );
 		
-		into(negs, nums);
+		into( negs, take( 10, new NaturalInts() ) );
 
+		System.out.println( );
 		assertEquals( 14, negs.size() );
 		assertEquals( new Integer( -4 ), negs.get( 0 ) );
 		assertEquals( new Integer( 0 ), negs.get( 4 ) );
@@ -41,7 +54,7 @@ public class FnsTest {
 		Set<Integer> ns = new HashSet<Integer>();
 		ns.addAll( Arrays.asList( 4, -2, 8, -1 ) );
 		
-		into( ns, nums );
+		into( ns, take( 10, new NaturalInts() ) );
 		
 		assertEquals( 12, ns.size() );
 		assertTrue( ns.contains( -2 ) );
@@ -52,27 +65,35 @@ public class FnsTest {
 		assertTrue( ns.contains( -2 ) );
 		assertTrue( ns.contains( 6 ) );
 	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testListComprehension() {
+		List<String> numStrings = new ArrayList<String>();
+		
+		into( numStrings, listComprehension( MathFns.isEven, Fns.toString, take( 20, new NaturalInts() ) ) );
+
+		assertEquals( "0", numStrings.get( 0 ) );
+		assertEquals( "2", numStrings.get( 1 ) );
+		assertEquals( "12", numStrings.get( 6 ) );
+	}
 	
 	@Test
 	public void testMap() {
-		Iterator<Integer> resultIter = map( sqr, nums );
+		Iterator<Integer> resultIter = map( sqr, take( 10, new NaturalInts() ) );
 
-		for ( int i = 0; i < nums.size() && resultIter.hasNext() ; i++ ) {
+		for ( int i = 0; i < 10 && resultIter.hasNext() ; i++ ) {
 			assertEquals( new Integer( i * i ), resultIter.next() );
-			// make sure we didn't alter the original collection
-			assertEquals( new Integer( i ), nums.get( i ) );
 		}
 	}
 	
 	@Test
 	public void testMapWithResultCollection() {
 		// now passing a collection for catching the results
-		Iterator<Integer> results = map( sqr, nums );
+		Iterator<Integer> results = map( sqr, take( 10, new NaturalInts() ) );
 
-		for ( int i = 0; i < nums.size() && results.hasNext(); i++ ) {
+		for ( int i = 0; i < 10 && results.hasNext(); i++ ) {
 			assertEquals( new Integer( i * i ), results.next() );
-			// make sure we didn't alter the original collection
-			assertEquals( new Integer( i ), nums.get( i ) );
 		}
 	}
 }

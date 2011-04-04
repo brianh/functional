@@ -9,7 +9,34 @@ import java.util.Iterator;
  * @author brian
  */
 @SuppressWarnings("rawtypes")
-public class Fns {
+public class Fns {	
+	public static final <T> Iterator<T> filter( final UnaryFn<T, Boolean> pred, 
+			final Iterator<? extends T> tings ) {
+		
+		return new Iterator<T>() {
+			private T ting;
+			
+			@Override
+			public boolean hasNext() {
+				ting = advanceUntil( pred, tings );
+				return ting != null;
+			}
+
+			@Override
+			public T next() {
+				return ting;
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException( "Remove from a filter is not allowed!" );
+			}
+		};
+	}
+	public static final <T> Iterator<T> filter( final UnaryFn<T, Boolean> pred, 
+			final Iterable<? extends T> ting ) {
+		return filter( pred, ting.iterator() );
+	}
 	
 	/**
 	 * Adds things to a collection.
@@ -19,7 +46,9 @@ public class Fns {
 	 * 
 	 * @return collection being added to for chaining calls
 	 */
-	public static final <T> Collection<T> into( Collection<T> targetColl, Iterator<? extends T> tings ) {
+	public static final <T> Collection<T> into( Collection<T> targetColl, 
+			Iterator<? extends T> tings ) {
+		
 		while ( tings.hasNext() ) {
 			targetColl.add( tings.next() );
 		};
@@ -34,8 +63,38 @@ public class Fns {
 	 * 
 	 * @return collection being added to for chaining calls
 	 */
-	public static final <T> Collection<T> into( Collection<T> targetColl, Iterable<? extends T> tings ) {
+	public static final <T> Collection<T> into( Collection<T> targetColl,
+			Iterable<? extends T> tings ) {
 		return into( targetColl, tings.iterator() );
+	}
+	
+	public static final <S,T> Iterator<S> listComprehension( final UnaryFn<T, Boolean> pred, 
+			final UnaryFn<T, S> fn, final Iterator<? extends T> tings ) {
+		
+		return new Iterator<S>() {
+			private T ting;
+			
+			@Override
+			public boolean hasNext() {
+				ting = advanceUntil( pred, tings );
+				return ting != null;
+			}
+
+			@Override
+			public S next() {
+				return fn.apply( ting );
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException( "Remove from a listComprehension is not allowed!" );
+			}
+		};
+	}
+
+	public static final <S,T> Iterator<S> listComprehension( final UnaryFn<T, Boolean> pred, 
+			final UnaryFn<T, S> fn, final Iterable<? extends T> tings ) {
+		return listComprehension( pred, fn, tings.iterator() );
 	}
 	
 	/**
@@ -48,7 +107,8 @@ public class Fns {
 	 * 
 	 * @return iterator containing the results
 	 */
-	public static final <T,R> Iterator<R> map( final UnaryFn<T, R> fn, final Iterator<? extends T> tings ) {
+	public static final <T,R> Iterator<R> map( final UnaryFn<T, R> fn, 
+			final Iterator<? extends T> tings ) {
 
 		return new Iterator<R>() {
 			@Override
@@ -94,8 +154,8 @@ public class Fns {
 	 * 
 	 * @return iterator containing the results
 	 */
-	public static final <F,S,R> Iterator<R> map( final BinaryFn<F, S, R> fn, final Iterator<? extends F> fings, 
-			final Iterator<? extends S> sings ) {
+	public static final <F,S,R> Iterator<R> map( final BinaryFn<F, S, R> fn, 
+			final Iterator<? extends F> fings, final Iterator<? extends S> sings ) {
 
 		return new Iterator<R>() {
 			@Override
@@ -145,8 +205,9 @@ public class Fns {
 	 * 
 	 * @return iterator containing the results
 	 */
-	public static final <F,S,T,R> Iterator<R> map( final TernaryFn<F, S, T, R> fn, final Iterator<? extends F> fings, 
-			final Iterator<? extends S> sings, final Iterator<? extends T> tings ) {
+	public static final <F,S,T,R> Iterator<R> map( final TernaryFn<F, S, T, R> fn, 
+			final Iterator<? extends F> fings, final Iterator<? extends S> sings, 
+			final Iterator<? extends T> tings ) {
 
 		return new Iterator<R>() {
 			@Override
@@ -179,8 +240,9 @@ public class Fns {
 	 * 
 	 * @return iterator containing the results
 	 */
-	public static final <F,S,T,R> Iterator<R> map( final TernaryFn<F, S, T, R> fn, final Iterable<? extends F> fings, 
-			final Iterable<? extends S> sings, final Iterable<? extends T> tings ) {
+	public static final <F,S,T,R> Iterator<R> map( final TernaryFn<F, S, T, R> fn,
+			final Iterable<? extends F> fings, final Iterable<? extends S> sings, 
+			final Iterable<? extends T> tings ) {
 		return map( fn, fings.iterator(), sings.iterator(), tings.iterator() );
 	}
 	
@@ -209,4 +271,69 @@ public class Fns {
 				return map( fn, iter, iter2 );
 			}
 	};
+	
+	/**
+	 * Takes the provided number of things from the iterator.  If the provided number is
+	 * greater than the number of things in the iterator, simply stops when the underlying iterator
+	 * is exhausted.
+	 * 
+	 * @param num - how many to take
+	 * @param tings - things to take
+	 * 
+	 * @return iterator that will cease when the number of things have been retrieved or the
+	 * 			provided iterator is exhausted
+	 */
+	public static final <T> Iterator<T> take( final int num, final Iterator<? extends T> tings ) {
+		return new Iterator<T>() {
+			private int numTaken = 0;
+			
+			@Override
+			public boolean hasNext() {
+				return numTaken++ < num && tings.hasNext();
+			}
+
+			@Override
+			public T next() {
+				return tings.next();
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException( "Take does not support removal!" );
+			}
+		};
+	}
+
+	/**
+	 * Takes the provided number of things from the iterator.  If the provided number is
+	 * greater than the number of things in the iterator, simply stops when the underlying iterator
+	 * is exhausted.
+	 * 
+	 * @param num - how many to take
+	 * @param tings - things to take
+	 * 
+	 * @return iterator that will cease when the number of things have been retrieved or the
+	 * 			provided iterator is exhausted
+	 */
+	public static final <T> Iterator<T> take( int num, Iterable<? extends T> tings ) {
+		return take( num, tings.iterator() );
+	}
+
+	public static final UnaryFn toString = new UnaryFn() {
+		@Override
+		public String apply( Object o ) {
+			return o.toString();
+		}
+	};
+	
+	private static final <T> T advanceUntil( UnaryFn<T, Boolean> pred, Iterator<? extends T> iter ) {
+		T t;
+		while (iter.hasNext()) {
+			t = iter.next();
+			if ( pred.apply( t ) ) {
+				return t;
+			}
+		}
+		return null;
+	}
 }
