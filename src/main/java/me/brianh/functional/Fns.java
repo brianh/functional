@@ -9,9 +9,19 @@ import java.util.Iterator;
  * @author brian
  */
 @SuppressWarnings("rawtypes")
-public class Fns {	
+public class Fns {
+	/**
+	 * Filters items from the iterator that evaluate to <code>false</code> with the
+	 * provided predicate.
+	 * 
+	 * @param <T>
+	 * @param pred - predicate to apply to items for inclusion in results
+	 * @param tings - items to process
+	 * 
+	 * @return iterator that produces items that passed the predicate
+	 */
 	public static final <T> Iterator<T> filter( final UnaryFn<T, Boolean> pred, 
-			final Iterator<? extends T> tings ) {
+			final Iterator<T> tings ) {
 		
 		return new Iterator<T>() {
 			private T ting;
@@ -33,9 +43,27 @@ public class Fns {
 			}
 		};
 	}
-	public static final <T> Iterator<T> filter( final UnaryFn<T, Boolean> pred, 
-			final Iterable<? extends T> ting ) {
+
+	/**
+	 * Filters items from the iterator that evaluate to <code>false</code> with the
+	 * provided predicate.
+	 * 
+	 * @param <T>
+	 * @param pred - predicate to apply to items for inclusion in results
+	 * @param tings - items to process
+	 * 
+	 * @return iterator that produces items that passed the predicate
+	 */
+	public static final <T> Iterator<T> filter( UnaryFn<T, Boolean> pred, Iterable<T> ting ) {
 		return filter( pred, ting.iterator() );
+	}
+	
+	public static final <T> T first( Iterator<T> tings ) {
+		return tings.hasNext() ? tings.next() : null;
+	}
+	
+	public static final <T> T first( Iterable<T> tings ) {
+		return first( tings.iterator() );
 	}
 	
 	/**
@@ -272,6 +300,56 @@ public class Fns {
 			}
 	};
 	
+	public static final <T> Iterator<T> repeatedly( final NullaryFn<T> fn ) {
+		return new Iterator<T>() {
+			@Override
+			public boolean hasNext() {
+				return true;
+			}
+
+			@Override
+			public T next() {
+				return fn.apply();
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException( "Repeatedly does not support removal!" );
+			}
+		};
+	}
+
+	public static final <T> Iterator<T> repeatedly( int n, NullaryFn<T> fn ) {
+		return take( n, repeatedly( fn ) );
+	}
+	
+	public static final <T> Iterator<T> rest( Iterator<T> tings ) {
+		if ( tings.hasNext() ) {
+			tings.next();
+			return tings;
+		}
+		return new Iterator<T>() {
+			@Override
+			public boolean hasNext() {
+				return false;
+			}
+
+			@Override
+			public T next() {
+				return null;
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException( "Rest does not support removal!" );
+			}
+		};
+	}
+	
+	public static final <T> Iterator<T> rest( Iterable<T> tings ) {
+		return rest( tings.iterator() );
+	}
+	
 	/**
 	 * Takes the provided number of things from the iterator.  If the provided number is
 	 * greater than the number of things in the iterator, simply stops when the underlying iterator
@@ -328,7 +406,7 @@ public class Fns {
 	
 	private static final <T> T advanceUntil( UnaryFn<T, Boolean> pred, Iterator<? extends T> iter ) {
 		T t;
-		while (iter.hasNext()) {
+		while ( iter.hasNext() ) {
 			t = iter.next();
 			if ( pred.apply( t ) ) {
 				return t;
