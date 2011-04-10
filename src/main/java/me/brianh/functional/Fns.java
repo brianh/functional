@@ -2,6 +2,7 @@ package me.brianh.functional;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * Really just a namespace...
@@ -10,25 +11,69 @@ import java.util.Iterator;
  */
 @SuppressWarnings("rawtypes")
 public class Fns {
+	public static final BinaryFn<Boolean, Boolean, Boolean> and =
+			new BinaryFn<Boolean, Boolean, Boolean>() {
+		@Override
+		public Boolean apply(Boolean b1, Boolean b2) {
+			return b1 && b2;
+		}
+	};
+	
+	/**
+	 * Applies the predicate to every item in the iterator until it 
+	 * fails (returns <code>false</code>).
+	 * 
+	 * @param pred - predicate to apply to items
+	 * @param items - things of interest
+	 * 
+	 * @return <code>true</code> if all items evaluate to <code>true</code> with 
+	 * the predicate, else <code>false</code>
+	 */
+	public static final <T> Boolean every( final UnaryFn<T, Boolean> pred,
+			final Iterator<? extends T> items ) {
+		
+		boolean result = true;
+		
+		while ( items.hasNext() && result ) {
+			result = pred.apply( items.next() );
+		}
+		return result;
+	}
+
+	
+	/**
+	 * Applies the predicate to every item in the iterable until it 
+	 * fails (returns <code>false</code>).
+	 * 
+	 * @param pred - predicate to apply to items
+	 * @param items - things of interest
+	 * 
+	 * @return <code>true</code> if all items evaluate to <code>true</code> with 
+	 * the predicate, else <code>false</code>
+	 */
+	public static final <T> Boolean every( final UnaryFn<T, Boolean> pred, 
+			final Iterable<? extends T> items ) {
+		return every( pred, items.iterator() );
+	}
+	
 	/**
 	 * Filters items from the iterator that evaluate to <code>false</code> with the
 	 * provided predicate.
 	 * 
-	 * @param <T>
 	 * @param pred - predicate to apply to items for inclusion in results
 	 * @param tings - items to process
 	 * 
 	 * @return iterator that produces items that passed the predicate
 	 */
 	public static final <T> Iterator<T> filter( final UnaryFn<T, Boolean> pred, 
-			final Iterator<T> tings ) {
+			final Iterator<? extends T> tings ) {
 		
 		return new Iterator<T>() {
 			private T ting;
 			
 			@Override
 			public boolean hasNext() {
-				ting = advanceUntil( pred, tings );
+				ting = first( pred, tings );
 				return ting != null;
 			}
 
@@ -45,25 +90,45 @@ public class Fns {
 	}
 
 	/**
-	 * Filters items from the iterator that evaluate to <code>false</code> with the
+	 * Filters items from the iterable that evaluate to <code>false</code> with the
 	 * provided predicate.
 	 * 
-	 * @param <T>
 	 * @param pred - predicate to apply to items for inclusion in results
 	 * @param tings - items to process
 	 * 
 	 * @return iterator that produces items that passed the predicate
 	 */
-	public static final <T> Iterator<T> filter( UnaryFn<T, Boolean> pred, Iterable<T> ting ) {
+	public static final <T> Iterator<T> filter( UnaryFn<T, Boolean> pred, Iterable<? extends T> ting ) {
 		return filter( pred, ting.iterator() );
 	}
 	
-	public static final <T> T first( Iterator<T> tings ) {
+	
+	public static final <T> T first( Iterator<? extends T> tings ) {
 		return tings.hasNext() ? tings.next() : null;
 	}
 	
-	public static final <T> T first( Iterable<T> tings ) {
+	public static final <T> T first( Iterable<? extends T> tings ) {
 		return first( tings.iterator() );
+	}
+	
+	/**
+	 * Locates the first item in the iterator that evaluates to <code>true</code>.
+	 * 
+	 * @param pred - predicate to apply to each item in the iterator
+	 * @param iter - hmmm....
+	 * 
+	 * @return first item in the list to evaluate to <code>true</code> or <code>null</code> if none
+	 * 			is found
+	 */
+	public static final <T> T first( UnaryFn<T, Boolean> pred, Iterator<? extends T> iter ) {
+		T t;
+		while ( iter.hasNext() ) {
+			t = iter.next();
+			if ( pred.apply( t ) ) {
+				return t;
+			}
+		}
+		return null;
 	}
 	
 	/**
@@ -104,7 +169,7 @@ public class Fns {
 			
 			@Override
 			public boolean hasNext() {
-				ting = advanceUntil( pred, tings );
+				ting = first( pred, tings );
 				return ting != null;
 			}
 
@@ -127,8 +192,6 @@ public class Fns {
 	
 	/**
 	 * Functional map.  Applies the provided function to each element in the iterator.
-	 * <p>
-	 * Does NOT alter the iterator. 
 	 *
 	 * @param fn - function to be applied to each thing
 	 * @param tings - that which needs operating
@@ -158,8 +221,6 @@ public class Fns {
 	
 	/**
 	 * Functional map.  Applies the provided function to each element in the iterator.
-	 * <p>
-	 * Does NOT alter the iterator. 
 	 *
 	 * @param fn - function to be applied to each ting
 	 * @param tings - that which needs operating
@@ -173,8 +234,6 @@ public class Fns {
 	/**
 	 * Functional map.  Applies the provided function to each element in the iterator.  Iteration 
 	 * stops when any argument iterator is exhausted.
-	 * <p>
-	 * Does NOT alter any iterator. 
 	 *
 	 * @param fn - function to be applied to each thing
 	 * @param fings - first argument iterator
@@ -258,8 +317,6 @@ public class Fns {
 	/**
 	 * Functional map.  Applies the provided function to each element in the iterator.  Iteration 
 	 * stops when any argument iterator is exhausted.
-	 * <p>
-	 * Does NOT alter any iterator. 
 	 *
 	 * @param fn - function to be applied to each thing
 	 * @param fings - first argument iterator
@@ -287,8 +344,6 @@ public class Fns {
 	};
 	
 	/**
-	 * This stinks but not much to be done with generic type erasure.
-	 * 
 	 * An actual map function (vs. method) that applies a function to two iterators.
 	 */
 	public static final TernaryFn<BinaryFn, Iterator, Iterator, Iterator> map2 = 
@@ -299,6 +354,43 @@ public class Fns {
 				return map( fn, iter, iter2 );
 			}
 	};
+	
+	/**
+	 * Reduces the provided collection of things to a single thing of the same type by applying the
+	 * result of the seed and the first item in the list to the function and then taking that 
+	 * result & applying the next item in the list and taking... you get the idea.  Also called fold
+	 * left(?) is some languages. 
+	 * 
+	 * @param fn - function to reduce things with
+	 * @param seed - first function call seed value
+	 * @param items - things to reduce
+	 * 
+	 * @return result of repeatedly applying the function to it's result with the items.  If 
+	 * 			items is an empty iterator, returns the seed
+	 */
+	public static final <T> T reduce( BinaryFn<T, T, T> fn, T seed, Iterator<? extends T> items ) {
+		T result = seed;
+		
+		while ( items.hasNext() ) {
+			result = fn.apply( result, items.next() );
+		}		
+		return result;
+	}
+	
+	public static final <T> T reduce( BinaryFn<T, T, T> fn, T seed, Iterable<? extends T> items ) {
+		return reduce( fn, seed, items.iterator() );
+	}
+	
+	public static final <T> T reduce( BinaryFn<T, T, T> fn, Iterator<? extends T> items ) {
+		// first moves the underlying iterator, therefore nothing else to do here...
+		return reduce( fn, first( items ), items );
+	}
+	
+	public static final <T> T reduce( BinaryFn<T, T, T> fn, Iterable<? extends T> items ) {
+		// first in this instance does NOT affect iterable, therefore, we need
+		// to call rest(...)...
+		return reduce( fn, first( items ), rest( items ) );
+	}
 	
 	public static final <T> Iterator<T> repeatedly( final NullaryFn<T> fn ) {
 		return new Iterator<T>() {
@@ -323,6 +415,15 @@ public class Fns {
 		return take( n, repeatedly( fn ) );
 	}
 	
+	/**
+	 * Advances the provided iterator if possible.
+	 * <p>
+	 * I don't trust this function...
+	 * 
+	 * @param tings
+	 * 
+	 * @return iterator of the rest of the things
+	 */
 	public static final <T> Iterator<T> rest( Iterator<T> tings ) {
 		if ( tings.hasNext() ) {
 			tings.next();
@@ -336,7 +437,7 @@ public class Fns {
 
 			@Override
 			public T next() {
-				return null;
+				throw new NoSuchElementException();
 			}
 
 			@Override
@@ -346,6 +447,13 @@ public class Fns {
 		};
 	}
 	
+	/**
+	 * Builds an iterator & drops the first item from the list.
+	 * 
+	 * @param tings - items of interest
+	 * 
+	 * @return iterator without the first item
+	 */
 	public static final <T> Iterator<T> rest( Iterable<T> tings ) {
 		return rest( tings.iterator() );
 	}
@@ -361,7 +469,7 @@ public class Fns {
 	 * @return iterator that will cease when the number of things have been retrieved or the
 	 * 			provided iterator is exhausted
 	 */
-	public static final <T> Iterator<T> take( final int num, final Iterator<? extends T> tings ) {
+	public static final <T> Iterator<T> take( final int num, final Iterator<T> tings ) {
 		return new Iterator<T>() {
 			private int numTaken = 0;
 			
@@ -393,7 +501,7 @@ public class Fns {
 	 * @return iterator that will cease when the number of things have been retrieved or the
 	 * 			provided iterator is exhausted
 	 */
-	public static final <T> Iterator<T> take( int num, Iterable<? extends T> tings ) {
+	public static final <T> Iterator<T> take( int num, Iterable<T> tings ) {
 		return take( num, tings.iterator() );
 	}
 
@@ -403,15 +511,4 @@ public class Fns {
 			return o.toString();
 		}
 	};
-	
-	private static final <T> T advanceUntil( UnaryFn<T, Boolean> pred, Iterator<? extends T> iter ) {
-		T t;
-		while ( iter.hasNext() ) {
-			t = iter.next();
-			if ( pred.apply( t ) ) {
-				return t;
-			}
-		}
-		return null;
-	}
 }

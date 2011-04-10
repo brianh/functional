@@ -1,18 +1,23 @@
 package me.brianh.functional;
 
+import static me.brianh.functional.Fns.every;
 import static me.brianh.functional.Fns.filter;
 import static me.brianh.functional.Fns.first;
 import static me.brianh.functional.Fns.into;
 import static me.brianh.functional.Fns.listComprehension;
 import static me.brianh.functional.Fns.map;
+import static me.brianh.functional.Fns.reduce;
 import static me.brianh.functional.Fns.repeatedly;
 import static me.brianh.functional.Fns.rest;
 import static me.brianh.functional.Fns.take;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -21,16 +26,22 @@ import java.util.Set;
 import org.junit.Test;
 
 public class FnsTest {
-	private UnaryFn<Integer, Integer> sqr = new UnaryFn<Integer, Integer>() {
-		@Override
-		public Integer apply( Integer i ) {
-			return i * i;
-		}
-	};
+
+	@Test
+	public void testEvery() {
+		List<Number> evens = new ArrayList<Number>();
+		into( evens, filter( MathFns.isEven, take( 100, new NaturalInts() ) ) );
+		
+		assertTrue( every( MathFns.isEven, evens ) );
+		
+		evens.add( 55 );
+		
+		assertFalse( every( MathFns.isEven, evens ) );
+	}
 	
 	@Test
 	public void testFilter() {
-		List<Integer> evens = new ArrayList<Integer>();
+		List<Number> evens = new ArrayList<Number>();
 		into( evens, filter( MathFns.isEven, take( 100, new NaturalInts() ) ) );
 		assertEquals( 50, evens.size() );
 		assertEquals( 0, evens.get( 0 ).intValue() );
@@ -88,7 +99,7 @@ public class FnsTest {
 	
 	@Test
 	public void testMap() {
-		Iterator<Integer> resultIter = map( sqr, take( 10, new NaturalInts() ) );
+		Iterator<Number> resultIter = map( MathFns.sqr, take( 10, new NaturalInts() ) );
 
 		for ( int i = 0; i < 10 && resultIter.hasNext() ; i++ ) {
 			assertEquals( i * i, resultIter.next().intValue() );
@@ -96,13 +107,36 @@ public class FnsTest {
 	}
 	
 	@Test
-	public void testMapWithResultCollection() {
-		// now passing a collection for catching the results
-		Iterator<Integer> results = map( sqr, take( 10, new NaturalInts() ) );
+	public void testReduce() {
+		int result = (Integer)reduce( MathFns.sum, take( 100, new NaturalInts() ) );
+		assertEquals( 4950, result );
 
-		for ( int i = 0; i < 10 && results.hasNext(); i++ ) {
-			assertEquals( i * i, results.next().intValue() );
-		}
+		// test iterator with one value
+		assertEquals( 0, reduce( MathFns.sum, take( 1, new NaturalInts() ) ) );
+		// test iterator with no value
+		assertNull( reduce( MathFns.sum, take( 0, new NaturalInts() ) ) );
+	}
+	
+	@Test
+	public void testReduceWithSeed() {
+		int result = (Integer)reduce( MathFns.sum, 1000, take( 100, new NaturalInts() ) );
+		assertEquals( 5950, result );
+	}
+	
+	@Test
+	public void testReduceIterable() {
+		Collection<Integer> nums = new ArrayList<Integer>();
+		into( nums, take( 100, new NaturalInts() ) );
+		int result = (Integer)reduce( MathFns.sum, nums );
+		assertEquals( 4950, result );
+	}
+	
+	@Test
+	public void testReduceIterableWithSeed() {
+		Collection<Integer> nums = new ArrayList<Integer>();
+		into( nums, take( 100, new NaturalInts() ) );
+		int result = (Integer)reduce( MathFns.sum, 1000, nums );
+		assertEquals( 5950, result );
 	}
 	
 	@Test
@@ -145,5 +179,18 @@ public class FnsTest {
 		into( nums, rest( take( 1, new NaturalInts() ) ) );
 		
 		assertEquals( 0, nums.size() );
+		
+		nums.clear();
+
+		List<Number> results = new ArrayList<Number>();
+		
+		into( nums, take( 5, new NaturalInts() ) );
+		
+		into( results, map( MathFns.sum, nums.iterator(), rest( nums ) ) );
+
+		assertEquals( 1, results.get( 0 ).intValue() );
+		assertEquals( 3, results.get( 1 ).intValue() );
+		assertEquals( 5, results.get( 2 ).intValue() );
+		assertEquals( 7, results.get( 3 ).intValue() );
 	}
 }
