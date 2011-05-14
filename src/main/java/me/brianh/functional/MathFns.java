@@ -3,31 +3,35 @@ package me.brianh.functional;
 import java.math.BigInteger;
 
 // TODO These need testing
+@SuppressWarnings("rawtypes")
 public class MathFns {
 
-	public static final UnaryFn<Number, Boolean> isEven = new UnaryFn<Number, Boolean>() {
+	public static final UnaryFn isEven = new UnaryFn() {
 		@Override
-		public Boolean apply( Number n) {
+		public Boolean apply( Object n ) {
 			if ( n instanceof Integer ) {
-				return n.intValue() % 2 == 0;
+				return ((Integer)n).intValue() % 2 == 0;
 			}
 			if ( n instanceof Long ) {
-				return n.longValue() % 2 == 0;
+				return ((Long)n).longValue() % 2 == 0;
 			}
 			if ( n instanceof BigInteger ) {
+				// never messed with big ints.  need to test this
 				return ((BigInteger)n).remainder( BigInteger.valueOf( 2 ) ).intValue() == 0;
 			}
 			return false;
 		}
 	};
 
-	public static UnaryFn<Number, Number> sqr = new UnaryFn<Number, Number>() {
+	public static UnaryFn sqr = new UnaryFn() {
 		@Override
-		public Number apply( Number i ) {
-			if ( i instanceof Integer ) {
+		public Object apply( Object o ) {
+			if ( o instanceof Integer ) {
+				Integer i = ((Integer)o);
 				return i.intValue() * i.intValue();
 			}
-			if ( i instanceof Double ) {
+			if ( o instanceof Double ) {
+				Integer i = ((Integer)o);
 				return i.doubleValue() * i.doubleValue();
 			}
 			// TODO permutations...
@@ -35,12 +39,14 @@ public class MathFns {
 		}
 	};
 	
-	public static final BinaryFn<Number, Number, Number> sum = new BinaryFn<Number, Number, Number>() {
+	public static final BinaryFn sum = new BinaryFn() {
 		@Override
-		public Number apply(Number a1, Number a2) {
-			if ( a1 instanceof Integer ) {
-				if ( a2 instanceof Integer ) {
-					return a1.intValue() + a2.intValue();
+		public Object apply(Object o1, Object o2) {
+			if ( o1 instanceof Integer ) {
+				Integer i1 = ((Integer)o1);
+				if ( o2 instanceof Integer ) {
+					Integer i2 = ((Integer)o2);
+					return i1.intValue() + i2.intValue();
 				}
 			}
 			// TODO permutations...

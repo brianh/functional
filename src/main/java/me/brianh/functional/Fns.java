@@ -19,6 +19,21 @@ public class Fns {
 		}
 	};
 	
+	public static final <T> UnaryFn<T, Boolean> conjugate( final UnaryFn<T, Boolean> pred ) {
+		return new UnaryFn<T, Boolean>() {
+			public Boolean apply(T item) {
+				return ! pred.apply( item );
+			};
+		};
+	}
+	
+	public static final BinaryFn equal = new BinaryFn() {
+		@Override
+		public Object apply(Object o1, Object o2) {
+			return o1 == null ? o2 == null : o1.equals( o2 );
+		}
+	};
+	
 	/**
 	 * Applies the predicate to every item in the iterator until it 
 	 * fails (returns <code>false</code>).
@@ -29,9 +44,7 @@ public class Fns {
 	 * @return <code>true</code> if all items evaluate to <code>true</code> with 
 	 * the predicate, else <code>false</code>
 	 */
-	public static final <T> Boolean every( final UnaryFn<T, Boolean> pred,
-			final Iterator<? extends T> items ) {
-		
+	public static final <T> Boolean every( UnaryFn<T, Boolean> pred, Iterator<? extends T> items ) {
 		boolean result = true;
 		
 		while ( items.hasNext() && result ) {
@@ -65,7 +78,7 @@ public class Fns {
 	 * 
 	 * @return iterator that produces items that passed the predicate
 	 */
-	public static final <T> Iterator<T> filter( final UnaryFn<T, Boolean> pred, 
+	public static final <T> Iterator<T> filter( final UnaryFn<T, Boolean> pred,
 			final Iterator<? extends T> tings ) {
 		
 		return new Iterator<T>() {
@@ -139,8 +152,8 @@ public class Fns {
 	 * 
 	 * @return collection being added to for chaining calls
 	 */
-	public static final <T> Collection<T> into( Collection<T> targetColl, 
-			Iterator<? extends T> tings ) {
+	public static final <T> Collection<? super T> into( Collection<? super T> targetColl, 
+			Iterator<T> tings ) {
 		
 		while ( tings.hasNext() ) {
 			targetColl.add( tings.next() );
@@ -156,8 +169,8 @@ public class Fns {
 	 * 
 	 * @return collection being added to for chaining calls
 	 */
-	public static final <T> Collection<T> into( Collection<T> targetColl,
-			Iterable<? extends T> tings ) {
+	public static final <T> Collection<? super T> into( Collection<? super T> targetColl,
+			Iterable<T> tings ) {
 		return into( targetColl, tings.iterator() );
 	}
 	
@@ -359,7 +372,7 @@ public class Fns {
 	 * Reduces the provided collection of things to a single thing of the same type by applying the
 	 * result of the seed and the first item in the list to the function and then taking that 
 	 * result & applying the next item in the list and taking... you get the idea.  Also called fold
-	 * left(?) is some languages. 
+	 * left(?) is some languages.
 	 * 
 	 * @param fn - function to reduce things with
 	 * @param seed - first function call seed value
@@ -390,6 +403,35 @@ public class Fns {
 		// first in this instance does NOT affect iterable, therefore, we need
 		// to call rest(...)...
 		return reduce( fn, first( items ), rest( items ) );
+	}
+	
+	public static final <T> Iterator<T> remove( final UnaryFn<T, Boolean> pred,
+			final Iterator<? extends T> items ) {
+
+		return filter( conjugate( pred ), items );
+	}
+	
+	public static final <T> Iterator<T> repeat( final T item ) {
+		return new Iterator<T>() {
+			@Override
+			public boolean hasNext() {
+				return true;
+			}
+
+			@Override
+			public T next() {
+				return item;
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException( "Repeated does not support removal!" );
+			}
+		};
+	}
+	
+	public static final <T> Iterator<T> repeat( int n, final T item ) {
+		return take( n, repeat( item ) );
 	}
 	
 	public static final <T> Iterator<T> repeatedly( final NullaryFn<T> fn ) {

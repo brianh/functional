@@ -1,5 +1,7 @@
 package me.brianh.functional;
 
+import static me.brianh.functional.Fns.conjugate;
+import static me.brianh.functional.Fns.equal;
 import static me.brianh.functional.Fns.every;
 import static me.brianh.functional.Fns.filter;
 import static me.brianh.functional.Fns.first;
@@ -7,9 +9,12 @@ import static me.brianh.functional.Fns.into;
 import static me.brianh.functional.Fns.listComprehension;
 import static me.brianh.functional.Fns.map;
 import static me.brianh.functional.Fns.reduce;
+import static me.brianh.functional.Fns.remove;
+import static me.brianh.functional.Fns.repeat;
 import static me.brianh.functional.Fns.repeatedly;
 import static me.brianh.functional.Fns.rest;
 import static me.brianh.functional.Fns.take;
+import static me.brianh.functional.Fns.toString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -26,6 +31,18 @@ import java.util.Set;
 import org.junit.Test;
 
 public class FnsTest {
+
+	@Test
+	public void testConjugate() {
+		UnaryFn<Number, Boolean> isOdd = conjugate( MathFns.isEven );
+
+		assertTrue( isOdd.apply( 3 ) );
+		assertTrue( isOdd.apply( -3 ) );
+		assertTrue( isOdd.apply( 383475849 ) );
+		assertFalse( isOdd.apply( 0 ) );
+		assertFalse( isOdd.apply( 847348 ) );
+		assertFalse( isOdd.apply( -40 ) );
+	}
 
 	@Test
 	public void testEvery() {
@@ -90,7 +107,7 @@ public class FnsTest {
 	public void testListComprehension() {
 		List<String> numStrings = new ArrayList<String>();
 		
-		into( numStrings, listComprehension( MathFns.isEven, Fns.toString, take( 20, new NaturalInts() ) ) );
+		into( numStrings, listComprehension( MathFns.isEven, toString, take( 20, new NaturalInts() ) ) );
 
 		assertEquals( "0", numStrings.get( 0 ) );
 		assertEquals( "2", numStrings.get( 1 ) );
@@ -112,7 +129,7 @@ public class FnsTest {
 		assertEquals( 4950, result );
 
 		// test iterator with one value
-		assertEquals( 0, reduce( MathFns.sum, take( 1, new NaturalInts() ) ) );
+		assertEquals( new Integer( 0 ), reduce( MathFns.sum, take( 1, new NaturalInts() ) ) );
 		// test iterator with no value
 		assertNull( reduce( MathFns.sum, take( 0, new NaturalInts() ) ) );
 	}
@@ -137,6 +154,35 @@ public class FnsTest {
 		into( nums, take( 100, new NaturalInts() ) );
 		int result = (Integer)reduce( MathFns.sum, 1000, nums );
 		assertEquals( 5950, result );
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testRemove() {
+		List<Integer> odds = new ArrayList<Integer>();
+		into( odds, remove( MathFns.isEven, take( 10, new NaturalInts() ) ) );
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testRepeat() {
+		List<String> commas = new ArrayList<String>();
+		
+		into( commas, take( 8, repeat( "," ) ) );
+		
+		assertEquals( 8, commas.size() );
+		assertTrue( every( equal.curry1( "," ), commas ) );
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testRepeatNum() {
+		List<String> commas = new ArrayList<String>();
+		
+		into( commas, repeat( 12, "," ) );
+		
+		assertEquals( 12, commas.size() );
+		assertTrue( every( equal.curry1( "," ), commas ) );
 	}
 	
 	@Test
