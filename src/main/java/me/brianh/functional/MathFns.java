@@ -5,6 +5,21 @@ import java.math.BigInteger;
 // TODO These need testing
 @SuppressWarnings("rawtypes")
 public class MathFns {
+	
+	public static final BinaryFn add = new BinaryFn() {
+		@Override
+		public Object apply(Object o1, Object o2) {
+			if ( o1 instanceof Integer ) {
+				Integer i1 = ((Integer)o1);
+				if ( o2 instanceof Integer ) {
+					Integer i2 = ((Integer)o2);
+					return i1.intValue() + i2.intValue();
+				}
+			}
+			// TODO permutations...
+			return null;
+		}
+	};
 
 	public static final UnaryFn isEven = new UnaryFn() {
 		@Override
@@ -22,6 +37,21 @@ public class MathFns {
 			return false;
 		}
 	};
+	
+	public static final BinaryFn mult = new BinaryFn() {
+		@Override
+		public Object apply(Object o1, Object o2) {
+			if ( o1 instanceof Integer ) {
+				Integer i1 = ((Integer)o1);
+				if ( o2 instanceof Integer ) {
+					Integer i2 = ((Integer)o2);
+					return i1.intValue() * i2.intValue();
+				}
+			}
+			// TODO permutations...
+			return null;
+		}
+	};
 
 	public static UnaryFn sqr = new UnaryFn() {
 		@Override
@@ -33,21 +63,6 @@ public class MathFns {
 			if ( o instanceof Double ) {
 				Integer i = ((Integer)o);
 				return i.doubleValue() * i.doubleValue();
-			}
-			// TODO permutations...
-			return null;
-		}
-	};
-	
-	public static final BinaryFn sum = new BinaryFn() {
-		@Override
-		public Object apply(Object o1, Object o2) {
-			if ( o1 instanceof Integer ) {
-				Integer i1 = ((Integer)o1);
-				if ( o2 instanceof Integer ) {
-					Integer i2 = ((Integer)o2);
-					return i1.intValue() + i2.intValue();
-				}
 			}
 			// TODO permutations...
 			return null;

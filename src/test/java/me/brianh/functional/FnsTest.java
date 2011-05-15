@@ -125,18 +125,18 @@ public class FnsTest {
 	
 	@Test
 	public void testReduce() {
-		int result = (Integer)reduce( MathFns.sum, take( 100, new NaturalInts() ) );
+		int result = (Integer)reduce( MathFns.add, take( 100, new NaturalInts() ) );
 		assertEquals( 4950, result );
 
 		// test iterator with one value
-		assertEquals( new Integer( 0 ), reduce( MathFns.sum, take( 1, new NaturalInts() ) ) );
+		assertEquals( new Integer( 0 ), reduce( MathFns.add, take( 1, new NaturalInts() ) ) );
 		// test iterator with no value
-		assertNull( reduce( MathFns.sum, take( 0, new NaturalInts() ) ) );
+		assertNull( reduce( MathFns.add, take( 0, new NaturalInts() ) ) );
 	}
 	
 	@Test
 	public void testReduceWithSeed() {
-		int result = (Integer)reduce( MathFns.sum, 1000, take( 100, new NaturalInts() ) );
+		int result = (Integer)reduce( MathFns.add, 1000, take( 100, new NaturalInts() ) );
 		assertEquals( 5950, result );
 	}
 	
@@ -144,7 +144,7 @@ public class FnsTest {
 	public void testReduceIterable() {
 		Collection<Integer> nums = new ArrayList<Integer>();
 		into( nums, take( 100, new NaturalInts() ) );
-		int result = (Integer)reduce( MathFns.sum, nums );
+		int result = (Integer)reduce( MathFns.add, nums );
 		assertEquals( 4950, result );
 	}
 	
@@ -152,7 +152,7 @@ public class FnsTest {
 	public void testReduceIterableWithSeed() {
 		Collection<Integer> nums = new ArrayList<Integer>();
 		into( nums, take( 100, new NaturalInts() ) );
-		int result = (Integer)reduce( MathFns.sum, 1000, nums );
+		int result = (Integer)reduce( MathFns.add, 1000, nums );
 		assertEquals( 5950, result );
 	}
 	
@@ -232,7 +232,7 @@ public class FnsTest {
 		
 		into( nums, take( 5, new NaturalInts() ) );
 		
-		into( results, map( MathFns.sum, nums.iterator(), rest( nums ) ) );
+		into( results, map( MathFns.add, nums.iterator(), rest( nums ) ) );
 
 		assertEquals( 1, results.get( 0 ).intValue() );
 		assertEquals( 3, results.get( 1 ).intValue() );
