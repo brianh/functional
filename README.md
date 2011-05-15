@@ -16,9 +16,9 @@ Currently, most of the function processors (reduce, map, etc.) are static method
 
     BinaryFn<Integer,Integer, Integer> multiply = new BinaryFn<Integer,Integer, Integer>() {
         @Override
-	public Integer apply( Integer i1, Integer i2 ) {
-	    return i1 * i2;
-	}
+        public Integer apply( Integer i1, Integer i2 ) {
+            return i1 * i2;
+        }
     }
 
 I warned you!  Is that fugly or what?  All to just multiply two integers!  Gotta love those generics....
@@ -55,7 +55,7 @@ versus Java:
     for ( int i = 0; i < 100; i++ ) {
         if ( ! ( i % 2 == 0 ) ) {
             sum += i;
-	}
+        }
     }
 
 Now, how about multiplying the first 100 even numbers by 13?
